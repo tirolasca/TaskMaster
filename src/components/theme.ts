@@ -26,3 +26,21 @@ export const darkTheme: Theme = {
   buttonBg: "#1e88e5",            // azul para botão
   buttonHover: "#1565c0",         // azul mais escuro no hover
 };
+
+export const themes = {
+  dark: {
+    name: "Dark",
+    background: "#121212",
+    itemBackground: "#1e1e1e",
+    textColor: "#fff",
+    buttonBg: "#ff5252",
+  },
+  neon: {
+    name: "Neon",
+    background: "#0a0a0a",
+    itemBackground: "#111",
+    textColor: "#00ffc3",
+    buttonBg: "#00ffc3",
+  },
+};
+

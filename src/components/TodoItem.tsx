@@ -1,82 +1,160 @@
-import React, { useState, useEffect, CSSProperties } from "react";
+import React from "react";
 import { Theme } from "./theme";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faTrash,
+  faCheckCircle,
+  faArrowUp,
+  faMinus,
+  faArrowDown,
+  faCircle,
+  faGripVertical,
+} from "@fortawesome/free-solid-svg-icons";
+import { motion } from "framer-motion";
+
+export type Priority = "high" | "medium" | "low";
 
 type TodoItemProps = {
   task: string;
   done: boolean;
+  priority: Priority;
   onToggle: () => void;
   onRemove: () => void;
   theme: Theme;
-  style?: CSSProperties;
 };
 
-const TodoItem: React.FC<TodoItemProps> = ({ task, done, onToggle, onRemove, theme, style }) => {
-  const [fade, setFade] = useState(false);
-  const [hover, setHover] = useState(false);
+const priorityConfig = {
+  high: {
+    icon: faArrowUp,
+    color: "#ff5252",
+    label: "Alta",
+  },
+  medium: {
+    icon: faMinus,
+    color: "#ffb300",
+    label: "Média",
+  },
+  low: {
+    icon: faArrowDown,
+    color: "#4caf50",
+    label: "Baixa",
+  },
+};
 
-  const handleRemove = () => setFade(true);
-
-  useEffect(() => {
-    if (fade) {
-      const timer = setTimeout(onRemove, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [fade, onRemove]);
+const TodoItem: React.FC<TodoItemProps> = ({
+  task,
+  done,
+  priority,
+  onToggle,
+  onRemove,
+  theme,
+}) => {
+  const p = priorityConfig[priority];
 
   return (
-    <li
-      onClick={onToggle}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
+    <motion.li
+      layout
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.85 }}
+      whileHover={{ scale: 1.03 }}
+      transition={{ type: "spring", stiffness: 420, damping: 26 }}
       style={{
         display: "flex",
-        justifyContent: "space-between",
         alignItems: "center",
-        padding: "14px 18px",
-        margin: "10px 0",
-        backgroundColor: done ? theme.completedBackground : theme.itemBackground,
+        gap: "12px",
+        padding: "14px 16px",
+        marginBottom: "12px",
+        borderRadius: "16px",
+        background: done
+          ? `${theme.completedBackground}CC`
+          : theme.itemBackground,
         color: theme.textColor,
-        borderRadius: "12px",
-        cursor: "pointer",
-        textDecoration: done ? "line-through" : "none",
-        boxShadow: hover
-          ? "0 8px 20px rgba(0,0,0,0.15)"
-          : "0 2px 8px rgba(0,0,0,0.08)",
-        transition: "transform 0.2s, box-shadow 0.2s, opacity 0.3s",
-        opacity: fade ? 0 : 1,
-        transform: fade
-          ? "scale(0.8)"
-          : hover
-          ? "scale(1.03)"
-          : style?.transform || "scale(1)",
-        borderLeft: done ? `4px solid ${theme.completedBackground}` : "4px solid #ccc",
-        ...style,
+        boxShadow: "0 8px 22px rgba(0,0,0,0.25)",
+        borderLeft: `5px solid ${p.color}`,
       }}
     >
-      <span style={{ flex: 1 }}>{task}</span>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          handleRemove();
-        }}
+
+      
+      {/* ===== DRAG INDICATOR ===== */}
+      <FontAwesomeIcon
+        icon={faGripVertical}
+        style={{ opacity: 0.35, cursor: "grab" }}
+      />
+
+      {/* ===== TEXTO ===== */}
+      <div
+        onClick={onToggle}
         style={{
           display: "flex",
           alignItems: "center",
-          backgroundColor: "#ff4d4d",
-          border: "none",
-          borderRadius: "6px",
-          padding: "6px 12px",
-          color: "#fff",
+          gap: "10px",
+          flex: 1,
           cursor: "pointer",
-          transition: "0.3s",
-          fontWeight: "bold",
+          textDecoration: done ? "line-through" : "none",
+          opacity: done ? 0.7 : 1,
         }}
-        onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#e04343")}
-        onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#ff4d4d")}
       >
-        <span style={{ marginRight: "6px" }}>🗑️</span> Remover
-      </button>
-    </li>
+        {/* STATUS ICON */}
+        <motion.span
+          initial={false}
+          animate={{ scale: done ? 1 : 0.9 }}
+          transition={{ type: "spring", stiffness: 400 }}
+        >
+          <FontAwesomeIcon
+            icon={done ? faCheckCircle : faCircle}
+            color={done ? theme.textColor : "#666"}
+          />
+        </motion.span>
+
+        <span>{task}</span>
+      </div>
+
+      {/* ===== AÇÕES ===== */}
+      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        {!done && (
+          <motion.span
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "5px 12px",
+              borderRadius: "999px",
+              fontSize: "0.75rem",
+              fontWeight: "bold",
+              background: `${p.color}22`,
+              color: p.color,
+              whiteSpace: "nowrap",
+            }}
+          >
+            <FontAwesomeIcon icon={p.icon} />
+            {p.label}
+          </motion.span>
+        )}
+
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+          style={{
+            background: "#ff4d4d",
+            border: "none",
+            borderRadius: "10px",
+            padding: "8px 10px",
+            color: "#fff",
+            cursor: "pointer",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
+          }}
+        >
+          <FontAwesomeIcon icon={faTrash} />
+        </motion.button>
+      </div>
+    </motion.li>
   );
 };
 
