@@ -2,24 +2,16 @@ import React, { useState, useEffect } from "react";
 import TodoColumn from "./TodoColumn";
 import Snackbar from "./Snackbar";
 import PriorityDropdown from "./PriorityDropdown";
-import { Theme } from "./theme";
+import { Theme } from "./Theme";
 import { motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faListCheck,
-  faPlus,
-  faFire,
-  faGaugeHigh,
-  faArrowDown,
-  faCircleCheck,
-} from "@fortawesome/free-solid-svg-icons";
+import { faListCheck, faPlus, faCircleCheck } from "@fortawesome/free-solid-svg-icons";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 
-import {
-  requestNotificationPermission,
-  notifyTask,
-} from "../utils/notifications";
-
+import { requestNotificationPermission, notifyTask } from "../utils/Notifications";
 import { suggestPriority } from "../utils/AiPriority";
+import { addHistory } from "../utils/AiHistory";
 
 /* ===== TYPES ===== */
 export type Priority = "high" | "medium" | "low";
@@ -36,24 +28,17 @@ type Props = {
 };
 
 /* ===== COLUNAS ===== */
-const columns: {
-  key: Priority;
-  icon: any;
-  color: string;
-}[] = [
-  { key: "high", icon: faFire, color: "#ff5252" },
-  { key: "medium", icon: faGaugeHigh, color: "#ffb300" },
-  { key: "low", icon: faArrowDown, color: "#4caf50" },
+const columns: { key: Priority }[] = [
+  { key: "high" },
+  { key: "medium" },
+  { key: "low" },
 ];
 
 const TodoBoard: React.FC<Props> = ({ theme }) => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTask, setNewTask] = useState("");
   const [priority, setPriority] = useState<Priority>("medium");
-
-  // 🔒 trava quando usuário escolhe manualmente
   const [priorityLocked, setPriorityLocked] = useState(false);
-
   const [undoTodo, setUndoTodo] = useState<Todo | null>(null);
 
   /* ===== NOTIFICAÇÕES ===== */
@@ -61,12 +46,13 @@ const TodoBoard: React.FC<Props> = ({ theme }) => {
     requestNotificationPermission();
   }, []);
 
-  /* ===== IA: SUGERE, NÃO SOBRESCREVE ===== */
+  /* ===== IA: SUGERE, NÃO SOBRESCREVE + histórico ===== */
   useEffect(() => {
     if (!priorityLocked && newTask.trim()) {
-      const suggestion = suggestPriority(newTask);
-      if (suggestion) {
-        setPriority(suggestion);
+      const suggested = suggestPriority(newTask);
+      if (suggested) {
+        setPriority(suggested);
+        addHistory(newTask, suggested);
       }
     }
   }, [newTask, priorityLocked]);
@@ -82,7 +68,7 @@ const TodoBoard: React.FC<Props> = ({ theme }) => {
   }, [todos]);
 
   /* ===== AÇÕES ===== */
-  const addTodo = () => {
+  const addTodo = async () => {
     if (!newTask.trim()) return;
 
     const todo: Todo = {
@@ -94,9 +80,16 @@ const TodoBoard: React.FC<Props> = ({ theme }) => {
 
     setTodos((prev) => [todo, ...prev]);
     setNewTask("");
-    setPriorityLocked(false); // 🔓 libera IA para próxima tarefa
+    setPriorityLocked(false);
 
-    notifyTask(`Nova tarefa: ${todo.task}`);
+    // ⚡ Notificação inteligente apenas para alta prioridade
+    if (priority === "high") {
+      await notifyTask({
+        body: `🔥 Tarefa de ALTA prioridade: ${todo.task}`,
+        title: "TaskMaster",
+        onClick: () => window.focus(), // foco na aba quando clicar na notificação
+      });
+    }
   };
 
   const toggleTodo = (id: number) => {
@@ -123,7 +116,7 @@ const TodoBoard: React.FC<Props> = ({ theme }) => {
 
   /* ===== UI ===== */
   return (
-    <>
+    <DndProvider backend={HTML5Backend}>
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -147,12 +140,19 @@ const TodoBoard: React.FC<Props> = ({ theme }) => {
             marginBottom: "24px",
           }}
         >
-          <FontAwesomeIcon icon={faListCheck} />
-          TaskMaster
+          <FontAwesomeIcon icon={faListCheck} /> TaskMaster
         </h2>
 
         {/* INPUT */}
-        <div style={{ display: "flex", gap: "10px", marginBottom: "22px" }}>
+        <div
+          className="todo-input-row"
+          style={{
+            display: "flex",
+            gap: "10px",
+            marginBottom: "22px",
+            flexWrap: "wrap",
+          }}
+        >
           <input
             value={newTask}
             placeholder="Nova tarefa..."
@@ -175,9 +175,42 @@ const TodoBoard: React.FC<Props> = ({ theme }) => {
             theme={theme}
             onChange={(p) => {
               setPriority(p);
-              setPriorityLocked(true); // 🔒 usuário manda agora
+              setPriorityLocked(true);
             }}
           />
+
+          {!priorityLocked && newTask.trim() && suggestPriority(newTask) && (
+            <motion.span
+              initial={{ scale: 0.8, opacity: 0.7 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.6, repeat: Infinity, repeatType: "reverse" }}
+              style={{
+                marginLeft: "8px",
+                padding: "4px 8px",
+                borderRadius: "12px",
+                fontSize: "0.75rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                fontWeight: "bold",
+                color: "#fff",
+                background:
+                  suggestPriority(newTask) === "high"
+                    ? "#ff5252"
+                    : suggestPriority(newTask) === "medium"
+                    ? "#ffb300"
+                    : "#4caf50",
+              }}
+            >
+              {`🤖 IA sugere: ${
+                suggestPriority(newTask) === "high"
+                  ? "Alta prioridade"
+                  : suggestPriority(newTask) === "medium"
+                  ? "Média prioridade"
+                  : "Baixa prioridade"
+              }`}
+            </motion.span>
+          )}
 
           <button
             onClick={addTodo}
@@ -197,13 +230,14 @@ const TodoBoard: React.FC<Props> = ({ theme }) => {
 
         {/* KANBAN */}
         <div
+          className="todo-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
             gap: "18px",
           }}
         >
-          {columns.map((col) => (
+         {columns.map((col) => (
             <TodoColumn
               key={col.key}
               priority={col.key}
@@ -211,11 +245,20 @@ const TodoBoard: React.FC<Props> = ({ theme }) => {
               theme={theme}
               onToggle={toggleTodo}
               onRemove={removeTodo}
-              onReorder={(newOrder) =>
-                setTodos((prev) => [
-                  ...prev.filter((t) => t.priority !== col.key),
-                  ...newOrder,
-                ])
+              onReorder={(newOrder: Todo[]) => {
+                setTodos((prev) => {
+                  // mantém os itens de outras prioridades
+                  const others = prev.filter((t) => t.priority !== col.key);
+                  // retorna todos juntos
+                  return [...others, ...newOrder];
+                });
+              }}
+              onChangePriority={(id: number, newPriority: Priority) =>
+                setTodos((prev) =>
+                  prev.map((t) =>
+                    t.id === id ? { ...t, priority: newPriority } : t
+                  )
+                )
               }
             />
           ))}
@@ -223,8 +266,7 @@ const TodoBoard: React.FC<Props> = ({ theme }) => {
 
         {/* FOOTER */}
         <p style={{ textAlign: "center", marginTop: "22px" }}>
-          <FontAwesomeIcon icon={faCircleCheck} /> Concluídas: {completedCount} /{" "}
-          {todos.length}
+          <FontAwesomeIcon icon={faCircleCheck} /> Concluídas: {completedCount} / {todos.length}
         </p>
       </motion.div>
 
@@ -237,7 +279,7 @@ const TodoBoard: React.FC<Props> = ({ theme }) => {
           onClose={() => setUndoTodo(null)}
         />
       )}
-    </>
+    </DndProvider>
   );
 };
 

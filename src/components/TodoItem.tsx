@@ -1,5 +1,5 @@
 import React from "react";
-import { Theme } from "./theme";
+import { Theme } from "./Theme";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTrash,
@@ -11,48 +11,42 @@ import {
   faGripVertical,
 } from "@fortawesome/free-solid-svg-icons";
 import { motion } from "framer-motion";
-
-export type Priority = "high" | "medium" | "low";
+import { useDrag } from "react-dnd";
+import { Priority, Todo } from "./TodoBoard";
 
 type TodoItemProps = {
-  task: string;
-  done: boolean;
-  priority: Priority;
+  todo: Todo; // objeto completo
   onToggle: () => void;
   onRemove: () => void;
   theme: Theme;
 };
 
 const priorityConfig = {
-  high: {
-    icon: faArrowUp,
-    color: "#ff5252",
-    label: "Alta",
-  },
-  medium: {
-    icon: faMinus,
-    color: "#ffb300",
-    label: "Média",
-  },
-  low: {
-    icon: faArrowDown,
-    color: "#4caf50",
-    label: "Baixa",
-  },
+  high: { icon: faArrowUp, color: "#ff5252", label: "Alta" },
+  medium: { icon: faMinus, color: "#ffb300", label: "Média" },
+  low: { icon: faArrowDown, color: "#4caf50", label: "Baixa" },
 };
 
 const TodoItem: React.FC<TodoItemProps> = ({
-  task,
-  done,
-  priority,
+  todo,
   onToggle,
   onRemove,
   theme,
 }) => {
-  const p = priorityConfig[priority];
+  const p = priorityConfig[todo.priority as Priority];
+
+  // Hook do react-dnd para arrastar
+  const [{ isDragging }, drag] = useDrag({
+    type: "TODO",
+    item: todo,
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
 
   return (
     <motion.li
+      ref={drag}
       layout
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
@@ -66,23 +60,20 @@ const TodoItem: React.FC<TodoItemProps> = ({
         padding: "14px 16px",
         marginBottom: "12px",
         borderRadius: "16px",
-        background: done
+        background: todo.done
           ? `${theme.completedBackground}CC`
           : theme.itemBackground,
         color: theme.textColor,
         boxShadow: "0 8px 22px rgba(0,0,0,0.25)",
         borderLeft: `5px solid ${p.color}`,
+        opacity: isDragging ? 0.5 : 1,
+        cursor: "grab",
       }}
     >
+      {/* DRAG INDICATOR */}
+      <FontAwesomeIcon icon={faGripVertical} style={{ opacity: 0.35 }} />
 
-      
-      {/* ===== DRAG INDICATOR ===== */}
-      <FontAwesomeIcon
-        icon={faGripVertical}
-        style={{ opacity: 0.35, cursor: "grab" }}
-      />
-
-      {/* ===== TEXTO ===== */}
+      {/* TEXTO */}
       <div
         onClick={onToggle}
         style={{
@@ -91,28 +82,27 @@ const TodoItem: React.FC<TodoItemProps> = ({
           gap: "10px",
           flex: 1,
           cursor: "pointer",
-          textDecoration: done ? "line-through" : "none",
-          opacity: done ? 0.7 : 1,
+          textDecoration: todo.done ? "line-through" : "none",
+          opacity: todo.done ? 0.7 : 1,
         }}
       >
-        {/* STATUS ICON */}
         <motion.span
           initial={false}
-          animate={{ scale: done ? 1 : 0.9 }}
+          animate={{ scale: todo.done ? 1 : 0.9 }}
           transition={{ type: "spring", stiffness: 400 }}
         >
           <FontAwesomeIcon
-            icon={done ? faCheckCircle : faCircle}
-            color={done ? theme.textColor : "#666"}
+            icon={todo.done ? faCheckCircle : faCircle}
+            color={todo.done ? theme.textColor : "#666"}
           />
         </motion.span>
 
-        <span>{task}</span>
+        <span>{todo.task}</span>
       </div>
 
-      {/* ===== AÇÕES ===== */}
+      {/* AÇÕES */}
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        {!done && (
+        {!todo.done && (
           <motion.span
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}

@@ -19,6 +19,19 @@ body {
   color: inherit;
 }
 
+h1,
+h2,
+h3 {
+  font-weight: 700; /* bold */
+}
+
+p,
+span,
+input,
+button {
+  font-weight: 400; /* regular */
+}
+
 /* ===== ELEMENTOS BÁSICOS ===== */
 button {
   font-family: inherit;
@@ -61,6 +74,21 @@ code {
   color: #fff;
 }
 
+/* ===== INPUT ===== */
+.todo-input-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+/* ===== KANBAN ===== */
+.todo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+  justify-content: center;
+}
+
 /* ===== ANIMAÇÕES ===== */
 @keyframes pop {
   0% {
@@ -73,9 +101,44 @@ code {
   }
 }
 
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
 /* ===== MOBILE FIRST ===== */
 @media (max-width: 768px) {
   body {
     font-size: 14px;
+  }
+
+  /* Container do input */
+  .todo-input-row {
+    flex-direction: column;
+  }
+
+  .todo-input-row input,
+  .todo-input-row button,
+  .todo-input-row .priority-wrapper {
+    width: 100%;
+  }
+
+  /* Header para mobile */
+  .todo-header {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  /* Kanban com 1 coluna */
+  .todo-grid {
+    grid-template-columns: 1fr !important;
   }
 }

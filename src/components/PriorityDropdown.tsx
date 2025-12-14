@@ -6,7 +6,7 @@ import {
   faArrowDown,
   faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
-import { Theme } from "./theme";
+import { Theme } from "./Theme";
 import { Priority } from "./TodoBoard";
 
 type Props = {
@@ -21,11 +21,7 @@ const options = [
   { key: "low", label: "Baixa", icon: faArrowDown, color: "#4caf50" },
 ];
 
-const PriorityDropdown: React.FC<Props> = ({
-  value,
-  onChange,
-  theme,
-}) => {
+const PriorityDropdown: React.FC<Props> = ({ value, onChange, theme }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -62,6 +58,8 @@ const PriorityDropdown: React.FC<Props> = ({
           alignItems: "center",
           justifyContent: "space-between",
           gap: "10px",
+          boxShadow: `0 4px 12px rgba(0, 0, 0, 0.15)`,
+          transition: "0.3s ease",
         }}
       >
         <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -72,7 +70,7 @@ const PriorityDropdown: React.FC<Props> = ({
         <FontAwesomeIcon
           icon={faChevronDown}
           style={{
-            transition: "0.25s",
+            transition: "0.3s ease",
             transform: open ? "rotate(180deg)" : "rotate(0)",
           }}
         />
@@ -91,6 +89,8 @@ const PriorityDropdown: React.FC<Props> = ({
             padding: "6px",
             boxShadow: "0 12px 30px rgba(0,0,0,0.35)",
             zIndex: 1000,
+            opacity: 1,
+            transition: "opacity 0.3s ease",
           }}
         >
           {options.map((opt) => (
@@ -116,6 +116,15 @@ const PriorityDropdown: React.FC<Props> = ({
                 alignItems: "center",
                 gap: "10px",
                 marginBottom: "4px",
+                transition: "0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = `${opt.color}33`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = opt.key === value
+                  ? `${opt.color}22`
+                  : "transparent";
               }}
             >
               <FontAwesomeIcon icon={opt.icon} />
