@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import TodoColumn from "./TodoColumn";
 import Snackbar from "./Snackbar";
 import PriorityDropdown from "./PriorityDropdown";
-import { Theme } from "./Theme";
+import { Theme } from "./theme";
 import { motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faListCheck, faPlus, faCircleCheck } from "@fortawesome/free-solid-svg-icons";

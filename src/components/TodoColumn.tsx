@@ -1,6 +1,6 @@
 import React from "react";
 import TodoItem from "./TodoItem";
-import { Theme } from "./Theme";
+import { Theme } from "./theme";
 import { Todo, Priority } from "./TodoBoard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {

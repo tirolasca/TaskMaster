@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import TodoBoard from "./components/TodoBoard";
-import { themes, Theme } from "./components/Theme";
+import { themes, Theme } from "./components/theme";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faSun,

@@ -6,7 +6,7 @@ import {
   faArrowDown,
   faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
-import { Theme } from "./Theme";
+import { Theme } from "./theme";
 import { Priority } from "./TodoBoard";
 
 type Props = {
