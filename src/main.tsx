@@ -12,13 +12,7 @@ import {
   faMinus,
 } from "@fortawesome/free-solid-svg-icons";
 
-library.add(
-  faTrash,
-  faCheckCircle,
-  faArrowUp,
-  faArrowDown,
-  faMinus
-);
+library.add(faTrash, faCheckCircle, faArrowUp, faArrowDown, faMinus);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -31,4 +25,3 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("/sw.js");
   });
 }
-
