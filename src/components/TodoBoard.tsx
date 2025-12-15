@@ -9,7 +9,7 @@ import { faListCheck, faPlus, faCircleCheck } from "@fortawesome/free-solid-svg-
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
-import { requestNotificationPermission, notifyTask } from "../utils/Notifications";
+import { requestNotificationPermission, notifyTask } from "../utils/notifications";
 import { suggestPriority } from "../utils/AiPriority";
 import { addHistory } from "../utils/AiHistory";
 
