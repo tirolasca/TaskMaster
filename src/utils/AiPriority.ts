@@ -1,11 +1,18 @@
 import { Priority } from "../components/TodoBoard";
 
+type WeightedWord = {
+  word: string;
+  weight: number;
+};
+
 type Rule = {
-  words: { word: string; weight: number }[];
+  words: WeightedWord[];
   priority: Priority;
 };
 
-// Define palavras com peso (quanto maior, mais importante)
+/* =======================
+   REGRAS DA IA
+======================= */
 const rules: Rule[] = [
   {
     priority: "high",
@@ -36,30 +43,79 @@ const rules: Rule[] = [
   },
 ];
 
-// Normaliza texto removendo acentos e transformando em minúsculas
+/* =======================
+   NORMALIZA TEXTO
+======================= */
 const normalize = (text: string) =>
-  text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 
+/* =======================
+   SUGESTÃO DE PRIORIDADE
+======================= */
 export const suggestPriority = (text: string): Priority | null => {
   const normalizedText = normalize(text);
 
-  // Pontuação acumulada por prioridade
-  const scores: Record<Priority, number> = { high: 0, medium: 0, low: 0 };
+  const scores: Record<Priority, number> = {
+    high: 0,
+    medium: 0,
+    low: 0,
+  };
 
   for (const rule of rules) {
     for (const { word, weight } of rule.words) {
       const normalizedWord = normalize(word);
-      const regex = new RegExp(`\\b${normalizedWord}\\b`, "gi"); // palavra inteira
+      const regex = new RegExp(`\\b${normalizedWord}\\b`, "gi");
       const matches = normalizedText.match(regex);
-      if (matches) scores[rule.priority] += matches.length * weight;
+      if (matches) {
+        scores[rule.priority] += matches.length * weight;
+      }
     }
   }
 
-  // Determina a prioridade com maior pontuação
   const maxScore = Math.max(scores.high, scores.medium, scores.low);
-  if (maxScore === 0) return null; // nenhuma palavra encontrada
+  if (maxScore === 0) return null;
 
   if (scores.high === maxScore) return "high";
   if (scores.medium === maxScore) return "medium";
   return "low";
 };
+
+/* =======================
+   DETECTA PALAVRA-CHAVE
+   (para tooltip / highlight)
+======================= */
+export const detectKeyword = (text: string): string | null => {
+  const normalizedText = normalize(text);
+
+  for (const rule of rules) {
+    for (const { word } of rule.words) {
+      const normalizedWord = normalize(word);
+      const regex = new RegExp(`\\b${normalizedWord}\\b`, "i");
+      if (regex.test(normalizedText)) {
+        return word; // retorna a palavra original
+      }
+    }
+  }
+
+  return null;
+};
+export const keywordMap = [
+  {
+    priority: "high",
+    words: ["urgente", "hoje", "agora", "prazo", "imediato"],
+  },
+  {
+    priority: "medium",
+    words: ["importante", "amanhã", "necessário"],
+  },
+  {
+    priority: "low",
+    words: ["depois", "qualquer dia", "quando der", "mais tarde"],
+  },
+];
+
+
+

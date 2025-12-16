@@ -83,7 +83,6 @@ const PriorityDropdown: React.FC<Props> = ({ value, onChange, theme }) => {
             position: "absolute",
             top: "110%",
             left: 0,
-            right: 0,
             background: theme.itemBackground,
             borderRadius: "14px",
             padding: "6px",
